@@ -1,0 +1,18 @@
+# Local environment and credentials
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+ADMIN_CREDENTIALS.txt
+
+# Dependencies and generated output
+node_modules/
+dist/
+coverage/
+*.log
+
+# Local data and temporary scripts
+backend/backups/
+backend/tmp_*.js

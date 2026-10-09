@@ -1,0 +1,49 @@
+name: Build & Push Docker Images
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Extract version from tag
+        id: meta
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Build and push backend image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./backend
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/skillsphere-backend:${{ steps.meta.outputs.VERSION }}
+            ${{ secrets.DOCKER_USERNAME }}/skillsphere-backend:latest
+          cache-from: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/skillsphere-backend:latest
+
+      - name: Build and push frontend image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./frontend
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/skillsphere-frontend:${{ steps.meta.outputs.VERSION }}
+            ${{ secrets.DOCKER_USERNAME }}/skillsphere-frontend:latest
+          cache-from: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/skillsphere-frontend:latest
+
+      - name: Image digest
+        run: echo "Built and pushed images for version ${{ steps.meta.outputs.VERSION }}"
